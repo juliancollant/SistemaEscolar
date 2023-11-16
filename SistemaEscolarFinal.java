@@ -1,0 +1,406 @@
+import java.sql.*;
+import java.util.Scanner;
+public class SistemaEscolar {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sistemaescolar", "juliancollant", "pancuca1")) {
+            System.out.println("Conexión exitosa a la base de datos");
+            boolean continuar = true;
+            while (continuar) {
+                System.out.println("Menú:");
+                System.out.println("1. Mostrar Estudiantes");
+                System.out.println("2. mostrar Profesores");
+                System.out.println("3. Agregar Estudiantes");
+                System.out.println("4. Agregar Profesores");
+                System.out.println("5. Eliminar estudiante por nombre");
+                System.out.println("6. Despedir profesor");
+                System.out.println("7. Editar Estudiante");
+                System.out.println("8. Editar Profesor");
+                System.out.println("8. Salir");
+                System.out.println("Seleccione una opción:");
+
+                int opcionMenu = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (opcionMenu) {
+                    case 1:
+                        mostrarEstudiantes(connection);
+                        break;
+                    case 2:
+                        mostrarProfesores(connection);
+                        break;
+                    case 3:
+                        agregarEstudiante(connection, scanner);
+                        break;
+                    case 4:
+                        agregarProfesor(connection, scanner);
+                        break;
+                    case 5:
+                        eliminarEstudiantePorNombre(connection, scanner);
+                        break;
+                    case 6:
+                        despedirProfesores(connection, scanner);
+                        break;
+                    case 7:
+                       editarEstudiante(connection, scanner);
+                        break;
+                    case 8: editarProfesor(connection,scanner);
+
+                    case 9: continuar = false;
+                        break;
+                    default:
+                        System.out.println("Opción inválida");
+                        break;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al conectar a la base de datos: " + e.getMessage());
+        } finally {
+            scanner.close();
+        }
+    }
+
+    private static void editarProfesor(Connection connection, Scanner scanner) {
+        try {
+            System.out.println("Ingrese el nombre del profesor que desea editar:");
+            String nombreProfesor = scanner.nextLine();
+
+            System.out.println("Ingrese el nuevo nombre profesor:");
+            String nuevoNombre = scanner.nextLine();
+
+            System.out.println("Ingrese el nuevo apellido del profesor:");
+            String nuevoApellido = scanner.nextLine();
+
+            System.out.println("Ingrese la nueva materia del profesor:");
+            String nuevaMateria = scanner.nextLine();
+
+            System.out.println("Ingrese el nuevo DNI del profesor:");
+            int nuevoDNI = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese la nueva edad del profesor:");
+            int nuevaEdad = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese los nuevos días que trabaja:");
+            String nuevosDias = scanner.nextLine();
+
+            // Preparar la llamada al procedimiento almacenado para editar profesor
+            String procedimiento = "{CALL EditarProfesorr(?, ?, ?, ?, ?, ?, ?)}";
+            CallableStatement callableStatement = connection.prepareCall(procedimiento);
+
+            callableStatement.setString(1, nuevoNombre);
+            callableStatement.setString(2, nuevoApellido);
+            callableStatement.setString(3, nuevaMateria);
+            callableStatement.setInt(4, nuevoDNI);
+            callableStatement.setInt(5, nuevaEdad);
+            callableStatement.setString(6, nuevosDias);
+            callableStatement.setString(7, nombreProfesor);
+
+            // Ejecutar la actualización del profesor
+            int filasAfectadas = callableStatement.executeUpdate();
+            if (filasAfectadas > 0) {
+                System.out.println("Profesor actualizado correctamente.");
+            } else {
+                System.out.println("No se encontró ningún profesor con ese nombre.");
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println("Error al editar profesor: " + e.getMessage());
+        }
+    }
+
+
+    public static void editarEstudiante(Connection connection, Scanner scanner) {
+        try {
+            System.out.println("Ingrese el ID del estudiante que desea editar:");
+            int idEstudiante = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese el nuevo nombre del estudiante:");
+            String nuevoNombre = scanner.nextLine();
+
+            System.out.println("Ingrese el nuevo apellido del estudiante:");
+            String nuevoApellido = scanner.nextLine();
+
+            System.out.println("Ingrese el nuevo legajo del estudiante:");
+            int nuevoLegajo = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese el nuevo DNI del estudiante:");
+            int nuevoDNI = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese la nueva edad del estudiante:");
+            int nuevaEdad = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese la nueva cantidad de materias inscripto:");
+            int nuevaCantMaterias = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese el nuevo profesor favorito del estudiante:");
+            String nuevoProfFav = scanner.nextLine();
+
+            // Preparar la llamada al procedimiento almacenado para editar estudiante
+            String procedimiento = "{CALL EditarEstudiante(?, ?, ?, ?, ?, ?, ?, ?)}";
+            CallableStatement callableStatement = connection.prepareCall(procedimiento);
+
+            // Establecer los parámetros del procedimiento almacenado
+            callableStatement.setInt(1, idEstudiante);
+            callableStatement.setString(2, nuevoNombre);
+            callableStatement.setString(3, nuevoApellido);
+            callableStatement.setInt(4, nuevoLegajo);
+            callableStatement.setInt(5, nuevoDNI);
+            callableStatement.setInt(6, nuevaEdad);
+            callableStatement.setInt(7, nuevaCantMaterias);
+            callableStatement.setString(8, nuevoProfFav);
+
+            // Ejecutar la actualización del estudiante
+            int filasAfectadas = callableStatement.executeUpdate();
+            if (filasAfectadas > 0) {
+                System.out.println("Estudiante actualizado correctamente.");
+            } else {
+                System.out.println("No se encontró ningún estudiante con ese ID.");
+            }
+
+            callableStatement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al editar estudiante: " + e.getMessage());
+        }
+    }
+
+
+    public static void mostrarEstudiantes(Connection connection) {
+        try {
+            String consulta = "SELECT * FROM estudiantes";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(consulta);
+
+            System.out.println("Listado de Estudiantes:");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String nombre = resultSet.getString("nombre");
+                String apellido = resultSet.getString("apellido");
+                int legajo = resultSet.getInt("legajo");
+                int dni = resultSet.getInt("dni");
+                int edad = resultSet.getInt("edad");
+                int cantMateriasInscripto = resultSet.getInt("cantidad_de_materias_inscripto");
+                String profesorFavorito = resultSet.getString("profesor_fav");
+
+                System.out.println("ID: " + id + ", Nombre: " + nombre + ", Apellido: " + apellido +
+                        ", Legajo: " + legajo + ", DNI: " + dni + ", Edad: " + edad +
+                        ", Materias Inscripto: " + cantMateriasInscripto + ", Profesor Favorito: " + profesorFavorito);
+            }
+
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al mostrar estudiantes: " + e.getMessage());
+        }
+    }
+
+    public static void mostrarProfesores(Connection connection) {
+        try {
+            String consulta = "SELECT * FROM profesores";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(consulta);
+
+            System.out.println("Listado de Profesores:");
+            while (resultSet.next()) {
+
+                String nombre = resultSet.getString("nombre");
+                String apellido = resultSet.getString("apellido");
+                String materia = resultSet.getString("materia");
+                String diasTrabajo = resultSet.getString("dias_trabajo");
+                int dni = resultSet.getInt("dni");
+                int edad = resultSet.getInt("edad");
+
+                System.out.println(", Nombre: " + nombre + ", Apellido: " + apellido +
+                        ", Materia: " + materia + ", Días de Trabajo: " + diasTrabajo +
+                        ", DNI: " + dni + ", Edad: " + edad);
+            }
+
+            statement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al mostrar profesores: " + e.getMessage());
+        }
+    }
+    public static void agregarEstudiante(Connection connection, Scanner scanner) {
+        try {
+            System.out.println("Ingrese el nombre del estudiante:");
+            String nombre = scanner.nextLine();
+
+            System.out.println("Ingrese el apellido del estudiante:");
+            String apellido = scanner.nextLine();
+
+            System.out.println("Ingrese el legajo del estudiante:");
+            int legajo = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese el DNI del estudiante:");
+            int dni = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese la edad del estudiante:");
+            int edad = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese la cantidad de materias inscripto:");
+            int cantMateriasInscripto = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese el profesor favorito del estudiante:");
+            String profesorFavorito = scanner.nextLine();
+
+            // Preparar la consulta SQL para insertar un nuevo estudiante
+            String consulta = "INSERT INTO estudiantes (nombre, apellido, legajo, dni, edad, cantidad_de_materias_inscripto, profesor_fav) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(consulta);
+
+            // Establecer los valores de los parámetros en la consulta SQL
+            preparedStatement.setString(1, nombre);
+            preparedStatement.setString(2, apellido);
+            preparedStatement.setInt(3, legajo);
+            preparedStatement.setInt(4, dni);
+            preparedStatement.setInt(5, edad);
+            preparedStatement.setInt(6, cantMateriasInscripto);
+            preparedStatement.setString(7, profesorFavorito);
+
+            // Ejecutar la consulta para insertar el estudiante
+            int filasAfectadas = preparedStatement.executeUpdate();
+            if (filasAfectadas > 0) {
+                System.out.println("Estudiante agregado correctamente.");
+            } else {
+                System.out.println("No se pudo agregar el estudiante.");
+            }
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al agregar estudiante: " + e.getMessage());
+        }
+    }
+
+    public static void eliminarEstudiantePorNombre(Connection connection, Scanner scanner) {
+        try {
+            System.out.println("Ingrese el nombre del estudiante que desea eliminar:");
+            String nombreEstudiante = scanner.nextLine();
+
+            // Preparar la consulta SQL para eliminar al estudiante por su nombre
+            String consulta = "DELETE FROM estudiantes WHERE nombre = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(consulta);
+
+            // Establecer el nombre del estudiante como parámetro en la consulta SQL
+            preparedStatement.setString(1, nombreEstudiante);
+
+            // Ejecutar la consulta para eliminar al estudiante
+            int filasAfectadas = preparedStatement.executeUpdate();
+            if (filasAfectadas > 0) {
+                System.out.println("Estudiante eliminado correctamente.");
+            } else {
+                System.out.println("No se encontró ningún estudiante con ese nombre.");
+            }
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar estudiante: " + e.getMessage());
+        }
+    }
+
+    public static void agregarProfesor(Connection connection, Scanner scanner) {
+        try {
+            System.out.println("Ingrese el nombre del profesor:");
+            String nombre = scanner.nextLine();
+
+            System.out.println("Ingrese el apellido del profesor:");
+            String apellido = scanner.nextLine();
+
+            System.out.println("Ingrese la materia que enseña:");
+            String materia = scanner.nextLine();
+
+            System.out.println("Ingrese el DNI del profesor:");
+            int dni = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese la edad del profesor:");
+            int edad = scanner.nextInt();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            System.out.println("Ingrese los días de trabajo del profesor:");
+            String diasTrabajo = scanner.nextLine();
+
+            String consulta = "INSERT INTO profesores (nombre, apellido, materia, dias_trabajo, dni, edad) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(consulta);
+
+            preparedStatement.setString(1, nombre);
+            preparedStatement.setString(2, apellido);
+            preparedStatement.setString(3, materia);
+            preparedStatement.setString(4, diasTrabajo);
+            preparedStatement.setInt(5, dni);
+            preparedStatement.setInt(6, edad);
+
+            int filasAfectadas = preparedStatement.executeUpdate();
+            if (filasAfectadas > 0) {
+                System.out.println("Profesor agregado correctamente.");
+            } else {
+                System.out.println("No se pudo agregar al profesor.");
+            }
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al agregar profesor: " + e.getMessage());
+        }
+    }
+
+    public static void despedirProfesores(Connection connection, Scanner scanner) {
+        try {
+            System.out.println("Ingrese el Nombre del profesor que desea despedir:");
+            String nombreProfesor = scanner.nextLine();
+            scanner.nextLine(); // Limpiar el buffer del Scanner
+
+            // Preparar la consulta SQL para despedir al profesor por su ID
+            String consulta = "DELETE FROM profesores WHERE nombre = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(consulta);
+
+            // Establecer el ID del profesor como parámetro en la consulta SQL
+            preparedStatement.setString( 1, nombreProfesor);
+
+            // Ejecutar la consulta para despedir al profesor
+            int filasAfectadas = preparedStatement.executeUpdate();
+            if (filasAfectadas > 0) {
+                System.out.println("Profesor despedido correctamente.");
+            } else {
+                System.out.println("No se encontró ningún profesor con ese Nombre.");
+            }
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al despedir profesor: " + e.getMessage());
+        }
+    }
+    public static void editarEstudiante(Connection connection, int idEstudiante, String nuevoNombre, String nuevoApellido, int nuevoLegajo, int nuevoDNI, int nuevaEdad, int nuevaCantMaterias, String nuevoProfFav) {
+        try {
+            String procedimiento = "{CALL EditarEstudiante(?, ?, ?, ?, ?, ?, ?, ?)}";
+            CallableStatement callableStatement = connection.prepareCall(procedimiento);
+
+
+            callableStatement.setString(1, nuevoNombre);
+            callableStatement.setString(2, nuevoApellido);
+            callableStatement.setInt(3, nuevoLegajo);
+            callableStatement.setInt(4, nuevoDNI);
+            callableStatement.setInt(5, nuevaEdad);
+            callableStatement.setInt(6, nuevaCantMaterias);
+            callableStatement.setString(7, nuevoProfFav);
+
+            callableStatement.executeUpdate();
+            System.out.println("Datos del estudiante actualizados correctamente.");
+
+            callableStatement.close();
+        } catch (SQLException e) {
+            System.out.println("Error al editar estudiante: " + e.getMessage());
+        }
+    }
+
+
+
+}
