@@ -235,25 +235,25 @@ public class SistemaEscolar {
         }
     }
 
-    public static void despedirProfesores(Connection connection, Scanner scanner) {
+   public static void despedirProfesores(Connection connection, Scanner scanner) {
         try {
-            System.out.println("Ingrese el ID del profesor que desea despedir:");
-            int idProfesor = scanner.nextInt();
+            System.out.println("Ingrese el Nombre del profesor que desea despedir:");
+            String nombreProfesor = scanner.nextLine();
             scanner.nextLine(); // Limpiar el buffer del Scanner
 
             // Preparar la consulta SQL para despedir al profesor por su ID
-            String consulta = "DELETE FROM profesores WHERE id = ?";
+            String consulta = "DELETE FROM profesores WHERE nombre = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(consulta);
 
             // Establecer el ID del profesor como parámetro en la consulta SQL
-            preparedStatement.setInt(1, idProfesor);
+            preparedStatement.setString( 1, nombreProfesor);
 
             // Ejecutar la consulta para despedir al profesor
             int filasAfectadas = preparedStatement.executeUpdate();
             if (filasAfectadas > 0) {
                 System.out.println("Profesor despedido correctamente.");
             } else {
-                System.out.println("No se encontró ningún profesor con ese ID.");
+                System.out.println("No se encontró ningún profesor con ese Nombre.");
             }
 
             preparedStatement.close();
@@ -261,7 +261,6 @@ public class SistemaEscolar {
             System.out.println("Error al despedir profesor: " + e.getMessage());
         }
     }
-
 
     }
 
